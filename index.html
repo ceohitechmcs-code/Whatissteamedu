@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STEAM Robotics Lab — Interactive 3D Robotic Arm</title>
+
+<style>
+:root{
+  --bg:#101a27;
+  --panel:#172638;
+  --panel2:#203449;
+  --cyan:#39d9ff;
+  --purple:#a78bfa;
+  --pink:#ff72b6;
+  --green:#58e6a5;
+  --yellow:#ffd166;
+  --text:#edf5ff;
+  --muted:#9aafc5;
+  --border:rgba(255,255,255,.12);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,Segoe UI,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+button,input,select{font:inherit}
+button{
+  border:0;
+  cursor:pointer;
+  border-radius:9px;
+  padding:10px 15px;
+  background:var(--cyan);
+  color:#071522;
+  font-weight:800;
+}
+button:hover{filter:brightness(1.12)}
+button.secondary{
+  background:#31485f;
+  color:white;
+}
+button.danger{background:#ff7185;color:#21060c}
+input[type=range]{width:100%;accent-color:var(--cyan)}
+input[type=number]{
+  width:75px;
+  background:#0d1926;
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:7px;
+  color:white;
+}
+select{
+  background:#0d1926;
+  color:white;
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:8px;
+}
+header{
+  padding:18px 24px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  border-bottom:1px solid var(--border);
+  background:#111f30;
+}
+header h1{font-size:20px;margin:0}
+header p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.logo{
+  width:42px;height:42px;border-radius:12px;
+  display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--cyan),var(--purple));
+  color:#071522;font-size:22px;font-weight:900;
+}
+.brand{display:flex;align-items:center;gap:12px}
+.header-tag{
+  color:var(--green);
+  border:1px solid rgba(88,230,165,.4);
+  padding:7px 11px;border-radius:30px;
+  font-size:11px;font-weight:800;
+}
+main{max-width:1500px;margin:auto;padding:18px}
+.dashboard{
+  display:grid;
+  grid-template-columns:minmax(0,1.7fr) minmax(300px,1fr);
+  gap:16px;
+}
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:15px;
+  overflow:hidden;
+}
+.panel-head{
+  padding:15px 17px;
+  display:flex;justify-content:space-between;
+  align-items:center;gap:10px;
+  border-bottom:1px solid var(--border);
+}
+.panel-head h2{font-size:15px;margin:0}
+.panel-body{padding:16px}
+#scene{
+  width:100%;
+  height:510px;
+  display:block;
+  background:radial-gradient(ellipse at center,#263c53,#0d1724 75%);
+}
+.scene-tools{
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.scene-tools button{font-size:11px;padding:7px 10px}
+.scene-footer{
+  padding:12px 16px;
+  display:flex;justify-content:space-between;
+  color:var(--muted);font-size:11px;
+  border-top:1px solid var(--border);
+}
+.tabs{
+  display:flex;gap:6px;flex-wrap:wrap;
+  padding:12px;
+  border-bottom:1px solid var(--border);
+}
+.tab{
+  background:#263c52;color:#dceaff;
+  font-size:12px;padding:9px 12px;
+}
+.tab.active{background:var(--cyan);color:#071522}
+.module{display:none}
+.module.active{display:block}
+.section-title{
+  font-size:14px;margin:0 0 7px;
+}
+.muted{color:var(--muted);font-size:12px;line-height:1.6}
+.control{margin:15px 0}
+.control label{
+  display:flex;justify-content:space-between;
+  gap:10px;font-size:12px;margin-bottom:8px;
+}
+.value{color:var(--cyan);font-weight:800}
+.joint-card{
+  background:#102031;border:1px solid var(--border);
+  border-radius:10px;padding:12px;margin:10px 0;
+}
+.joint-card h3{font-size:12px;margin:0 0 10px}
+.joint-readouts{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:8px;margin-top:12px;
+}
+.readout{
+  background:#0c1926;border-radius:9px;
+  padding:10px;text-align:center;
+}
+.readout strong{display:block;color:var(--cyan);font-size:20px}
+.readout span{font-size:10px;color:var(--muted)}
+.metric-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:10px;margin-top:12px;
+}
+.metric{
+  padding:12px;background:#102031;
+  border-radius:10px;border:1px solid var(--border);
+}
+.metric strong{font-size:20px;color:var(--green)}
+.metric span{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.block-row{
+  display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;
+}
+.code-block{
+  padding:10px 12px;border-radius:8px;
+  background:#253e57;color:#e8f5ff;
+  font-size:12px;border:1px solid var(--border);
+}
+.code-block strong{color:var(--yellow)}
+.wire{
+  display:flex;align-items:center;gap:10px;
+  background:#102031;padding:12px;
+  border-radius:9px;margin:9px 0;
+  font-size:12px;
+}
+.wire-line{height:4px;flex:1;border-radius:5px}
+.wire-status{font-weight:900;font-size:11px}
+.status-ok{color:var(--green)}
+.status-bad{color:#ff7185}
+.gripper-preview{
+  margin:15px auto;width:150px;height:100px;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.gripper-jaw{
+  width:20px;height:70px;
+  border-radius:10px;background:var(--cyan);
+  position:absolute;top:15px;
+}
+.gripper-jaw.left{left:38px;transform:rotate(20deg)}
+.gripper-jaw.right{right:38px;transform:rotate(-20deg)}
+.gripper-center{
+  width:24px;height:24px;border-radius:50%;
+  background:#d9e8f8;z-index:2;
+}
+.challenge-box{
+  background:#102031;border:1px solid var(--border);
+  border-radius:12px;padding:14px;margin-top:15px;
+}
+.challenge-box h3{margin:0 0 7px;font-size:13px}
+footer{
+  text-align:center;color:var(--muted);
+  font-size:11px;padding:25px;
+}
+
+/* INTRO SCREEN */
+#introScreen{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  overflow-y:auto;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:30px 18px;
+  background:
+    radial-gradient(circle at 15% 15%,rgba(57,217,255,.16),transparent 35%),
+    radial-gradient(circle at 85% 85%,rgba(167,139,250,.18),transparent 35%),
+    linear-gradient(135deg,#071321,#12263b 55%,#091522);
+  transition:opacity .6s ease;
+}
+.intro-content{
+  width:min(100%,1050px);
+  text-align:center;
+}
+.intro-label{
+  display:inline-block;
+  color:var(--cyan);
+  border:1px solid rgba(57,217,255,.4);
+  padding:9px 16px;
+  border-radius:30px;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:2px;
+  margin-bottom:22px;
+}
+.intro-content h1{
+  font-size:clamp(38px,7vw,76px);
+  margin:0;
+  line-height:1.05;
+  letter-spacing:-2px;
+  background:linear-gradient(90deg,#fff,var(--cyan),#b7a0ff);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.intro-question{
+  font-size:clamp(17px,2.5vw,24px);
+  color:#dceaff;
+  margin:20px 0 12px;
+  font-weight:700;
+}
+.intro-description{
+  max-width:760px;
+  margin:0 auto;
+  color:#a9bfd3;
+  font-size:14px;
+  line-height:1.8;
+}
+.steam-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:12px;
+  margin:32px 0;
+}
+.steam-tile{
+  background:rgba(255,255,255,.055);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:15px;
+  padding:19px 10px;
+  backdrop-filter:blur(10px);
+}
+.steam-tile .symbol{
+  font-size:32px;
+  margin-bottom:12px;
+}
+.steam-tile h3{
+  font-size:14px;
+  margin:0 0 7px;
+}
+.steam-tile p{
+  font-size:11px;
+  line-height:1.5;
+  color:#a9bfd3;
+  margin:0;
+}
+.intro-activity{
+  color:#c6d9eb;
+  font-size:13px;
+  line-height:1.8;
+  max-width:760px;
+  margin:0 auto 22px;
+}
+.intro-tagline{
+  color:var(--yellow);
+  font-weight:900;
+  letter-spacing:1px;
+  margin:20px 0 26px;
+  font-size:14px;
+}
+#openSimulation{
+  background:linear-gradient(90deg,var(--cyan),#9e9aff);
+  padding:17px 28px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.5px;
+  box-shadow:0 10px 35px rgba(57,217,255,.2);
+}
+#introScreen.hide{
+  opacity:0;
+  pointer-events:none;
+}
+@media(max-width:900px){
+  .dashboard{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+  header{padding:13px}
+  header h1{font-size:16px}
+  .header-tag{display:none}
+  main{padding:10px}
+  #scene{height:370px}
+  .steam-grid{grid-template-columns:repeat(2,1fr)}
+  .steam-tile:last-child{grid-column:span 2}
+  .intro-content h1{letter-spacing:-1px}
+  .intro-label{font-size:9px}
+  .intro-description{font-size:12px}
+  #openSimulation{width:100%;font-size:11px}
+}
+</style>
+</head>
+
+<body>
+
+<!-- INTRODUCTION SCREEN -->
+<div id="introScreen">
+  <div class="intro-content">
+
+    <div class="intro-label">
+      NEXTGEN STEAM EDUCATION · THINK · CREATE · INNOVATE
+    </div>
+
+    <h1>WHAT IS STEAM?</h1>
+
+    <div class="intro-question">
+      Can five disciplines come together to build one real-world solution?
+    </div>
+
+    <p class="intro-description">
+      STEAM stands for Science, Technology, Engineering, Arts and Mathematics.
+      It is an interdisciplinary approach to learning that connects knowledge
+      with creativity, experimentation, design and real-world problem-solving.
+    </p>
+
+    <div class="steam-grid">
+
+      <div class="steam-tile">
+        <div class="symbol">🔬</div>
+        <h3>SCIENCE</h3>
+        <p>Understand how the world works through observation and experiments.</p>
+      </div>
+
+      <div class="steam-tile">
+        <div class="symbol">💻</div>
+        <h3>TECHNOLOGY</h3>
+        <p>Use and create digital tools, coding, AI and smart systems.</p>
+      </div>
+
+      <div class="steam-tile">
+        <div class="symbol">⚙️</div>
+        <h3>ENGINEERING</h3>
+        <p>Design, build, test and improve practical solutions.</p>
+      </div>
+
+      <div class="steam-tile">
+        <div class="symbol">🎨</div>
+        <h3>ARTS</h3>
+        <p>Bring imagination, creativity and human-centred design.</p>
+      </div>
+
+      <div class="steam-tile">
+        <div class="symbol">📐</div>
+        <h3>MATHEMATICS</h3>
+        <p>Measure, calculate, analyse and understand patterns.</p>
+      </div>
+
+    </div>
+
+    <p class="intro-activity">
+      In this interactive experience, you will explore a robotic arm,
+      calculate its torque, program its movement, investigate its circuit,
+      customise its gripper and experiment with joint angles.
+      Each activity reveals how all five STEAM disciplines work together.
+    </p>
+
+    <div class="intro-tagline">
+      ONE ROBOT. FIVE DISCIPLINES. COUNTLESS POSSIBILITIES.
+    </div>
+
+    <button id="openSimulation">
+      OPEN THE 3D STEAM ROBOTICS SIMULATION →
+    </button>
+
+  </div>
+</div>
+
+<header>
+  <div class="brand">
+    <div class="logo">S</div>
+    <div>
+      <h1>STEAM ROBOTICS LAB</h1>
+      <p>Interactive 3D Learning Environment</p>
+    </div>
+  </div>
+  <div class="header-tag">SCIENCE · TECHNOLOGY · ENGINEERING · ARTS · MATH</div>
+</header>
+
+<main>
+  <div class="dashboard">
+
+    <!-- 3D ROBOT VIEW -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>🤖 Interactive 3D Robotic Arm</h2>
+        <div class="scene-tools">
+          <button class="secondary" id="resetView">Reset View</button>
+          <button class="secondary" id="rotateView">Auto Rotate</button>
+        </div>
+      </div>
+
+      <canvas id="scene"></canvas>
+
+      <div class="scene-footer">
+        <span>Drag to rotate · Scroll to zoom</span>
+        <span>3D ROBOTIC ARM SIMULATOR</span>
+      </div>
+    </section>
+
+    <!-- INTERACTIVE MODULES -->
+    <section class="panel">
+      <div class="tabs">
+        <button class="tab active" data-tab="science">🔬 Science</button>
+        <button class="tab" data-tab="technology">💻 Technology</button>
+        <button class="tab" data-tab="engineering">⚙️ Engineering</button>
+        <button class="tab" data-tab="arts">🎨 Arts</button>
+        <button class="tab" data-tab="math">📐 Math</button>
+      </div>
+
+      <div class="panel-body">
+
+        <!-- SCIENCE -->
+        <div class="module active" id="science">
+          <h2 class="section-title">Science: Understand the Physics</h2>
+          <p class="muted">
+            Investigate how payload mass and distance from a joint affect
+            the torque required to move a robotic arm.
+          </p>
+
+          <div class="control">
+            <label>Payload Mass <span class="value" id="massOut">0.5 kg</span></label>
+            <input id="mass" type="range" min="0.1" max="5" step="0.1" value="0.5">
+          </div>
+
+          <div class="control">
+            <label>Lever Distance <span class="value" id="distanceOut">0.20 m</span></label>
+            <input id="distance" type="range" min="0.05" max="0.8" step="0.01" value="0.2">
+          </div>
+
+          <div class="metric-grid">
+            <div class="metric">
+              <strong id="forceOut">4.91 N</strong>
+              <span>Gravitational Force</span>
+            </div>
+            <div class="metric">
+              <strong id="torqueOut">0.98 Nm</strong>
+              <span>Calculated Torque</span>
+            </div>
+          </div>
+
+          <div class="challenge-box">
+            <h3>🧪 Think Like a Scientist</h3>
+            <p class="muted">
+              What happens to torque when you double the mass?
+              What happens when you move the same mass farther away?
+              Change the sliders and observe the results.
+            </p>
+          </div>
+        </div>
+
+        <!-- TECHNOLOGY -->
+        <div class="module" id="technology">
+          <h2 class="section-title">Technology: Program the Robot</h2>
+          <p class="muted">
+            Create a simple movement sequence by setting the angles of
+            the shoulder, elbow and wrist.
+          </p>
+
+          <div class="control">
+            <label>Shoulder Angle <span class="value" id="programShoulderOut">90°</span></label>
+            <input id="programShoulder" type="range" min="0" max="180" value="90">
+          </div>
+
+          <div class="control">
+            <label>Elbow Angle <span class="value" id="programElbowOut">90°</span></label>
+            <input id="programElbow" type="range" min="0" max="180" value="90">
+          </div>
+
+          <div class="control">
+            <label>Wrist Angle <span class="value" id="programWristOut">90°</span></label>
+            <input id="programWrist" type="range" min="0" max="180" value="90">
+          </div>
+
+          <div class="block-row">
+            <button id="addBlock">+ Add Movement Block</button>
+            <button class="secondary" id="clearBlocks">Clear</button>
+          </div>
+
+          <div id="blocks" class="block-row">
+            <span class="muted">Your movement blocks will appear here.</span>
+          </div>
+
+          <button id="runProgram">▶ RUN ROBOT PROGRAM</button>
+
+          <div class="challenge-box">
+            <h3>💡 Coding Challenge</h3>
+            <p class="muted">
+              Can you program the robotic arm to move through three
+              different positions? Add movement blocks and run your sequence.
+            </p>
+          </div>
+        </div>
+
+        <!-- ENGINEERING -->
+        <div class="module" id="engineering">
+          <h2 class="section-title">Engineering: Investigate the Circuit</h2>
+          <p class="muted">
+            A robotic arm needs a power source, electrical connections
+            and servo motors. One connection in this simulated circuit
+            is faulty. Find and repair it.
+          </p>
+
+          <div class="metric-grid">
+            <div class="metric">
+              <strong>5V</strong>
+              <span>Simulated Supply</span>
+            </div>
+            <div class="metric">
+              <strong>3</strong>
+              <span>Servo Motors</span>
+            </div>
+          </div>
+
+          <div id="wires"></div>
+
+          <button id="newFault" class="secondary">Generate New Circuit Fault</button>
+
+          <div class="challenge-box">
+            <h3>🔧 Engineering Challenge</h3>
+            <p class="muted">
+              Inspect each connection. Select the faulty wire to repair it.
+              A functioning circuit is essential for reliable robot movement.
+            </p>
+          </div>
+        </div>
+
+        <!-- ARTS -->
+        <div class="module" id="arts">
+          <h2 class="section-title">Arts: Design Your Robot</h2>
+          <p class="muted">
+            Creativity and design make technology more useful,
+            accessible and engaging. Customise your robot's gripper.
+          </p>
+
+          <div class="control">
+            <label>Gripper Colour</label>
+            <input id="gripperColor" type="color" value="#39d9ff">
+          </div>
+
+          <div class="control">
+            <label>Gripper Shape</label>
+            <select id="gripperShape">
+              <option value="standard">Standard Gripper</option>
+              <option value="wide">Wide Gripper</option>
+              <option value="claw">Claw Gripper</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label>Gripper Opening <span class="value" id="gripOut">50%</span></label>
+            <input id="gripOpening" type="range" min="0" max="100" value="50">
+          </div>
+
+          <div class="gripper-preview">
+            <div class="gripper-jaw left" id="previewLeft"></div>
+            <div class="gripper-center"></div>
+            <div class="gripper-jaw right" id="previewRight"></div>
+          </div>
+
+          <div class="challenge-box">
+            <h3>🎨 Design Challenge</h3>
+            <p class="muted">
+              Design a gripper that can safely hold different objects.
+              Think about shape, material, grip and the needs of the user.
+            </p>
+          </div>
+        </div>
+
+        <!-- MATHEMATICS -->
+        <div class="module" id="math">
+          <h2 class="section-title">Mathematics: Measure and Calculate</h2>
+          <p class="muted">
+            Mathematics controls the precision of robotic movement.
+            Change the joint angles and observe the live numerical values.
+          </p>
+
+          <div class="joint-card">
+            <h3>Shoulder Joint</h3>
+            <input id="shoulder" type="range" min="0" max="180" value="90">
+            <div class="muted">Angle: <strong class="value" id="shoulderOut">90°</strong></div>
+          </div>
+
+          <div class="joint-card">
+            <h3>Elbow Joint</h3>
+            <input id="elbow" type="range" min="0" max="180" value="90">
+            <div class="muted">Angle: <strong class="value" id="elbowOut">90°</strong></div>
+          </div>
+
+          <div class="joint-card">
+            <h3>Wrist Joint</h3>
+            <input id="wrist" type="range" min="0" max="180" value="90">
+            <div class="muted">Angle: <strong class="value" id="wristOut">90°</strong></div>
+          </div>
+
+          <div class="joint-readouts">
+            <div class="readout">
+              <strong id="mathS">90°</strong>
+              <span>Shoulder</span>
+            </div>
+            <div class="readout">
+              <strong id="mathE">90°</strong>
+              <span>Elbow</span>
+            </div>
+            <div class="readout">
+              <strong id="mathW">90°</strong>
+              <span>Wrist</span>
+            </div>
+          </div>
+
+          <div class="challenge-box">
+            <h3>📐 Mathematics Challenge</h3>
+            <p class="muted">
+              Set all three joints to 90°. Then change one angle at a time.
+              Observe how mathematical values control physical movement.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  NEXTGEN STEAM ROBOTICS LAB · LEARN BY DESIGNING · LEARN BY DOING
+</footer>
+
+<script>
+/* INTRO SCREEN */
+document.getElementById("openSimulation").addEventListener("click",()=>{
+  const intro=document.getElementById("introScreen");
+  intro.classList.add("hide");
+  setTimeout(()=>intro.remove(),650);
+});
+
+/* TAB SYSTEM */
+document.querySelectorAll(".tab").forEach(button=>{
+  button.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    document.querySelectorAll(".module").forEach(m=>m.classList.remove("active"));
+    button.classList.add("active");
+    document.getElementById(button.dataset.tab).classList.add("active");
+  });
+});
+
+/* SCIENCE: TORQUE */
+const mass=document.getElementById("mass");
+const distance=document.getElementById("distance");
+
+function updateTorque(){
+  const m=Number(mass.value);
+  const d=Number(distance.value);
+  const force=m*9.81;
+  const torque=force*d;
+
+  document.getElementById("massOut").textContent=m.toFixed(1)+" kg";
+  document.getElementById("distanceOut").textContent=d.toFixed(2)+" m";
+  document.getElementById("forceOut").textContent=force.toFixed(2)+" N";
+  document.getElementById("torqueOut").textContent=torque.toFixed(2)+" Nm";
+}
+mass.addEventListener("input",updateTorque);
+distance.addEventListener("input",updateTorque);
+updateTorque();
+
+/* MATHEMATICS AND ROBOT JOINTS */
+const jointInputs={
+  shoulder:document.getElementById("shoulder"),
+  elbow:document.getElementById("elbow"),
+  wrist:document.getElementById("wrist")
+};
+
+function updateAngleReadouts(){
+  const s=Number(jointInputs.shoulder.value);
+  const e=Number(jointInputs.elbow.value);
+  const w=Number(jointInputs.wrist.value);
+
+  document.getElementById("shoulderOut").textContent=s+"°";
+  document.getElementById("elbowOut").textContent=e+"°";
+  document.getElementById("wristOut").textContent=w+"°";
+
+  document.getElementById("mathS").textContent=s+"°";
+  document.getElementById("mathE").textContent=e+"°";
+  document.getElementById("mathW").textContent=w+"°";
+
+  updateRobotPose();
+}
+
+Object.values(jointInputs).forEach(input=>{
+  input.addEventListener("input",updateAngleReadouts);
+});
+
+/* TECHNOLOGY: BLOCK CODING */
+const programInputs={
+  shoulder:document.getElementById("programShoulder"),
+  elbow:document.getElementById("programElbow"),
+  wrist:document.getElementById("programWrist")
+};
+const programBlocks=[];
+
+function updateProgramLabels(){
+  document.getElementById("programShoulderOut").textContent=programInputs.shoulder.value+"°";
+  document.getElementById("programElbowOut").textContent=programInputs.elbow.value+"°";
+  document.getElementById("programWristOut").textContent=programInputs.wrist.value+"°";
+}
+Object.values(programInputs).forEach(input=>{
+  input.addEventListener("input",updateProgramLabels);
+});
+
+function renderBlocks(){
+  const container=document.getElementById("blocks");
+  container.innerHTML="";
+  if(programBlocks.length===0){
+    container.innerHTML='<span class="muted">Your movement blocks will appear here.</span>';
+    return;
+  }
+  programBlocks.forEach((block,index)=>{
+    const item=document.createElement("div");
+    item.className="code-block";
+    item.innerHTML="<strong>MOVE "+(index+1)+"</strong><br>Shoulder: "+
+      block.shoulder+"° · Elbow: "+block.elbow+"° · Wrist: "+block.wrist+"°";
+    container.appendChild(item);
+  });
+}
+document.getElementById("addBlock").addEventListener("click",()=>{
+  programBlocks.push({
+    shoulder:Number(programInputs.shoulder.value),
+    elbow:Number(programInputs.elbow.value),
+    wrist:Number(programInputs.wrist.value)
+  });
+  renderBlocks();
+});
+document.getElementById("clearBlocks").addEventListener("click",()=>{
+  programBlocks.length=0;
+  renderBlocks();
+});
+document.getElementById("runProgram").addEventListener("click",async()=>{
+  if(programBlocks.length===0){
+    alert("Add at least one movement block first.");
+    return;
+  }
+  for(const block of programBlocks){
+    await animateRobotTo(block,650);
+  }
+});
+
+/* ENGINEERING: RANDOM LOOSE CONNECTION */
+const wireNames=["Battery → Shoulder Servo","Battery → Elbow Servo","Battery → Wrist Servo"];
+let faultyWire=0;
+let repaired=false;
+
+function createFault(){
+  faultyWire=Math.floor(Math.random()*wireNames.length);
+  repaired=false;
+  renderWires();
+}
+function renderWires(){
+  const container=document.getElementById("wires");
+  container.innerHTML="";
+  wireNames.forEach((name,index)=>{
+    const row=document.createElement("div");
+    row.className="wire";
+
+    const line=document.createElement("div");
+    line.className="wire-line";
+    line.style.background=index===faultyWire&&!repaired?"#ff7185":"#58e6a5";
+
+    const label=document.createElement("span");
+    label.textContent=name;
+    label.style.flex="1";
+
+    const status=document.createElement("span");
+    status.className="wire-status "+(index===faultyWire&&!repaired?"status-bad":"status-ok");
+    status.textContent=index===faultyWire&&!repaired?"FAULT":"CONNECTED";
+
+    const repair=document.createElement("button");
+    repair.className="secondary";
+    repair.textContent="Inspect / Repair";
+    repair.addEventListener("click",()=>{
+      if(index===faultyWire&&!repaired){
+        repaired=true;
+        renderWires();
+        alert("Excellent! You found and repaired the faulty connection.");
+      }else if(repaired){
+        alert("This connection is functioning correctly.");
+      }else{
+        alert("This connection looks fine. Inspect another wire.");
+      }
+    });
+
+    row.append(label,line,status,repair);
+    container.appendChild(row);
+  });
+}
+document.getElementById("newFault").addEventListener("click",createFault);
+createFault();
+
+/* ARTS: GRIPPER CUSTOMISATION */
+const gripperColor=document.getElementById("gripperColor");
+const gripperShape=document.getElementById("gripperShape");
+const gripOpening=document.getElementById("gripOpening");
+
+function updateGripperDesign(){
+  const color=gripperColor.value;
+  const opening=Number(gripOpening.value);
+
+  document.getElementById("gripOut").textContent=opening+"%";
+
+  const left=document.getElementById("previewLeft");
+  const right=document.getElementById("previewRight");
+  left.style.background=color;
+  right.style.background=color;
+
+  const spread=20+opening*.35;
+  left.style.left=spread+"px";
+  right.style.right=spread+"px";
+
+  const shape=gripperShape.value;
+  if(shape==="wide"){
+    left.style.width="28px";
+    right.style.width="28px";
+    left.style.height="60px";
+    right.style.height="60px";
+  }else if(shape==="claw"){
+    left.style.width="13px";
+    right.style.width="13px";
+    left.style.height="82px";
+    right.style.height="82px";
+  }else{
+    left.style.width="20px";
+    right.style.width="20px";
+    left.style.height="70px";
+    right.style.height="70px";
+  }
+  updateThreeGripper();
+}
+[gripperColor,gripperShape,gripOpening].forEach(control=>{
+  control.addEventListener("input",updateGripperDesign);
+  control.addEventListener("change",updateGripperDesign);
+});
+
+/* THREE.JS 3D ROBOT */
+let scene,camera,renderer,robotGroup;
+let shoulderPivot,elbowPivot,wristPivot,gripperGroup;
+let autoRotate=false;
+let isDragging=false;
+let previousPointer={x:0,y:0};
+let targetRotation=0;
+let targetTilt=-0.2;
+let cameraDistance=8;
+
+const canvas=document.getElementById("scene");
+
+function createMaterial(color,metalness=.55,roughness=.35){
+  return new THREE.MeshStandardMaterial({
+    color,metalness,roughness
+  });
+}
+function addBox(parent,width,height,depth,material,x,y,z){
+  const mesh=new THREE.Mesh(
+    new THREE.BoxGeometry(width,height,depth),material
+  );
+  mesh.position.set(x,y,z);
+  mesh.castShadow=true;
+  mesh.receiveShadow=true;
+  parent.add(mesh);
+  return mesh;
+}
+function addCylinder(parent,radiusTop,radiusBottom,height,material,x,y,z){
+  const mesh=new THREE.Mesh(
+    new THREE.CylinderGeometry(radiusTop,radiusBottom,height,32),material
+  );
+  mesh.position.set(x,y,z);
+  mesh.castShadow=true;
+  mesh.receiveShadow=true;
+  parent.add(mesh);
+  return mesh;
+}
+function createJoint(parent,x,y,z,size){
+  const joint=new THREE.Mesh(
+    new THREE.SphereGeometry(size,32,32),
+    createMaterial("#c8d8e8",.85,.2)
+  );
+  joint.position.set(x,y,z);
+  joint.castShadow=true;
+  parent.add(joint);
+  return joint;
+}
+function createArmSegment(parent,length,width,material){
+  const group=new THREE.Group();
+  const body=addBox(group,width,length,width,material,0,length/2,0);
+  parent.add(group);
+  return group;
+}
+
+function initThree(){
+  scene=new THREE.Scene();
+  scene.background=new THREE.Color("#101b29");
+
+  camera=new THREE.PerspectiveCamera(42,1,.1,100);
+  camera.position.set(5,4,7);
+
+  renderer=new THREE.WebGLRenderer({
+    canvas,antialias:true,alpha:false
+  });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+
+  const ambient=new THREE.HemisphereLight("#d6eaff","#25364a",2.1);
+  scene.add(ambient);
+
+  const light=new THREE.DirectionalLight("#ffffff",3);
+  light.position.set(4,8,5);
+  light.castShadow=true;
+  scene.add(light);
+
+  const blue=createMaterial("#238bb5",.75,.25);
+  const dark=createMaterial("#25384c",.8,.28);
+  const silver=createMaterial("#b8c9d9",.85,.2);
+  const accent=createMaterial("#39d9ff",.5,.2);
+
+  // Floor and platform
+  const floor=new THREE.Mesh(
+    new THREE.PlaneGeometry(30,30),
+    createMaterial("#17283a",.2,.8)
+  );
+  floor.rotation.x=-Math.PI/2;
+  floor.position.y=-.03;
+  floor.receiveShadow=true;
+  scene.add(floor);
+
+  const grid=new THREE.GridHelper(20,40,"#456078","#263c51");
+  grid.position.y=0;
+  scene.add(grid);
+
+  const base=addCylinder(scene,1.05,1.05,.28,dark,0,.14,0);
+  addCylinder(scene,.83,.83,.12,blue,0,.34,0);
+
+  robotGroup=new THREE.Group();
+  scene.add(robotGroup);
+
+  shoulderPivot=new THREE.Group();
+  shoulderPivot.position.set(0,.4,0);
+  robotGroup.add(shoulderPivot);
+
+  createJoint(shoulderPivot,0,0,0,.31);
+  addCylinder(shoulderPivot,.18,.18,.22,silver,0,0,0);
+  shoulderPivot.children[1].rotation.z=Math.PI/2;
+
+  const upper=createArmSegment(shoulderPivot,1.7,.32,blue);
+  upper.position.y=0;
+  createJoint(shoulderPivot,0,1.7,0,.24);
+
+  elbowPivot=new THREE.Group();
+  elbowPivot.position.set(0,1.7,0);
+  shoulderPivot.add(elbowPivot);
+
+  createJoint(elbowPivot,0,0,0,.25);
+  addCylinder(elbowPivot,.16,.16,.24,silver,0,0,0);
+  elbowPivot.children[1].rotation.z=Math.PI/2;
+
+  const forearm=createArmSegment(elbowPivot,1.35,.25,dark);
+  forearm.position.y=0;
+
+  createJoint(elbowPivot,0,1.35,0,.2);
+
+  wristPivot=new THREE.Group();
+  wristPivot.position.set(0,1.35,0);
+  elbowPivot.add(wristPivot);
+
+  createJoint(wristPivot,0,0,0,.19);
+
+  const wristBar=addBox(wristPivot,.18,.65,.18,blue,0,.32,0);
+  wristBar.rotation.z=-.2;
+
+  gripperGroup=new THREE.Group();
+  gripperGroup.position.set(0,.68,0);
+  wristPivot.add(gripperGroup);
+
+  createJoint(gripperGroup,0,0,0,.12);
+
+  const fingerMaterial=createMaterial("#39d9ff",.65,.25);
+  const leftFinger=addBox(gripperGroup,.09,.48,.12,fingerMaterial,-.18,-.22,0);
+  const rightFinger=addBox(gripperGroup,.09,.48,.12,fingerMaterial,.18,-.22,0);
+  leftFinger.name="leftFinger";
+  rightFinger.name="rightFinger";
+
+  addBox(gripperGroup,.35,.1,.18,silver,0,.04,0);
+
+  // Decorative indicator lights
+  for(let i=0;i<3;i++){
+    const lamp=new THREE.Mesh(
+      new THREE.SphereGeometry(.045,16,16),
+      new THREE.MeshStandardMaterial({
+        color:["#39d9ff","#58e6a5","#ffd166"][i],
+        emissive:["#39d9ff","#58e6a5","#ffd166"][i],
+        emissiveIntensity:1
+      })
+    );
+    lamp.position.set(-.6+i*.6,.48,.86);
+    scene.add(lamp);
+  }
+
+  resizeRenderer();
+  updateRobotPose();
+  animateScene();
+}
+
+function resizeRenderer(){
+  if(!renderer||!camera)return;
+  const width=canvas.clientWidth;
+  const height=canvas.clientHeight;
+  renderer.setSize(width,height,false);
+  camera.aspect=width/height;
+  camera.updateProjectionMatrix();
+}
+
+function updateRobotPose(){
+  if(!shoulderPivot)return;
+
+  const s=Number(jointInputs.shoulder.value);
+  const e=Number(jointInputs.elbow.value);
+  const w=Number(jointInputs.wrist.value);
+
+  shoulderPivot.rotation.z=(s-90)*Math.PI/180;
+  elbowPivot.rotation.z=(e-90)*Math.PI/180;
+  wristPivot.rotation.z=(w-90)*Math.PI/180;
+}
+
+function updateThreeGripper(){
+  if(!gripperGroup)return;
+
+  const color=gripperColor.value;
+  const opening=Number(gripOpening.value)/100;
+  const shape=gripperShape.value;
+
+  const left=gripperGroup.getObjectByName("leftFinger");
+  const right=gripperGroup.getObjectByName("rightFinger");
+
+  if(left&&right){
+    left.material.color.set(color);
+    right.material.color.set(color);
+    const spread=.12+opening*.28;
+    left.position.x=-spread;
+    right.position.x=spread;
+
+    if(shape==="wide"){
+      left.scale.y=1.25;
+      right.scale.y=1.25;
+    }else if(shape==="claw"){
+      left.scale.y=1.45;
+      right.scale.y=1.45;
+    }else{
+      left.scale.y=1;
+      right.scale.y=1;
+    }
+  }
+}
+
+function animateRobotTo(target,duration=600){
+  return new Promise(resolve=>{
+    const start={
+      shoulder:Number(jointInputs.shoulder.value),
+      elbow:Number(jointInputs.elbow.value),
+      wrist:Number(jointInputs.wrist.value)
+    };
+    const begin=performance.now();
+
+    function step(now){
+      const progress=Math.min((now-begin)/duration,1);
+      const eased=progress<.5?
+        2*progress*progress:
+        1-Math.pow(-2*progress+2,2)/2;
+
+      jointInputs.shoulder.value=start.shoulder+
+        (target.shoulder-start.shoulder)*eased;
+      jointInputs.elbow.value=start.elbow+
+        (target.elbow-start.elbow)*eased;
+      jointInputs.wrist.value=start.wrist+
+        (target.wrist-start.wrist)*eased;
+
+      updateAngleReadouts();
+
+      if(progress<1){
+        requestAnimationFrame(step);
+      }else{
+        resolve();
+      }
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+function animateScene(){
+  requestAnimationFrame(animateScene);
+
+  if(autoRotate&&!isDragging){
+    targetRotation+=.003;
+  }
+
+  const radius=cameraDistance;
+  const tilt=targetTilt;
+  camera.position.x=Math.sin(targetRotation)*radius;
+  camera.position.z=Math.cos(targetRotation)*radius;
+  camera.position.y=4+Math.sin(tilt)*2.5;
+  camera.lookAt(0,1.5,0);
+
+  renderer.render(scene,camera);
+}
+
+/* 3D VIEW CONTROLS */
+canvas.addEventListener("pointerdown",event=>{
+  isDragging=true;
+  previousPointer={x:event.clientX,y:event.clientY};
+  canvas.setPointerCapture(event.pointerId);
+});
+canvas.addEventListener("pointermove",event=>{
+  if(!isDragging)return;
+  const dx=event.clientX-previousPointer.x;
+  const dy=event.clientY-previousPointer.y;
+  targetRotation+=dx*.008;
+  targetTilt=Math.max(-.8,Math.min(.8,targetTilt+dy*.005));
+  previousPointer={x:event.clientX,y:event.clientY};
+});
+canvas.addEventListener("pointerup",()=>{isDragging=false});
+canvas.addEventListener("pointercancel",()=>{isDragging=false});
+canvas.addEventListener("wheel",event=>{
+  event.preventDefault();
+  cameraDistance=Math.max(4,Math.min(13,cameraDistance+event.deltaY*.008));
+},{passive:false});
+
+document.getElementById("resetView").addEventListener("click",()=>{
+  targetRotation=0;
+  targetTilt=-.2;
+  cameraDistance=8;
+});
+document.getElementById("rotateView").addEventListener("click",event=>{
+  autoRotate=!autoRotate;
+  event.currentTarget.textContent=autoRotate?"Stop Rotation":"Auto Rotate";
+});
+
+/* INITIALISE */
+window.addEventListener("resize",resizeRenderer);
+
+updateAngleReadouts();
+updateProgramLabels();
+updateGripperDesign();
+renderBlocks();
+
+</script>
+
+<!-- THREE.JS LIBRARY -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from "three";
+window.THREE=THREE;
+
+/* Initialise the 3D scene after the library loads */
+const initialise=()=>{
+  if(typeof window.initThree==="function"){
+    window.initThree();
+  }
+};
+
+/* The main script exposes the required initialiser */
+window.addEventListener("load",initialise);
+</script>
+
+</body>
+</html>
